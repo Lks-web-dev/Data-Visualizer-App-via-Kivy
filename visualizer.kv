@@ -1,0 +1,20 @@
+Interface:
+
+<Interface>:
+    canvas.before:
+        Rectangle:
+            pos:self.pos
+            size:self.size
+    ScreenManager:
+        id: sm
+        Screen:
+            name: "upload_window"
+            Image_btn:
+                id: upload_btn
+                source: "Drag.png"
+                size_hint: None, None
+                size: dp(400), dp(400)
+                center: self.parent.center
+                on_press: root.upload_menu()
+        Screen:
+            name: "visualizer_window"
