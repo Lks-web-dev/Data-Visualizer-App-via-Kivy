@@ -1,5 +1,6 @@
 
 from kivy.app import App
+from kivy.clock import Clock
 from kivy.core.window.window_x11 import Config
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.boxlayout import BoxLayout
@@ -17,12 +18,21 @@ class Image_btn(ButtonBehavior, Image):
 
 
 class Interface(BoxLayout):
-    def upload_menu(self):
-        self.ids.upload_btn.source = "Drop.png"
+    def upload(self, dt):
         # files retourne le répertoire
         files = filechooser.open_file(title="Choose excel files", filter=[["*.xlsx"]], multiple=True)
         print(files)
         self.ids.upload_btn.source = "Drag.png"
+
+    def upload_menu(self):
+        self.ids.upload_btn.source = "Drop.png"
+        Clock.schedule_once(self.upload)
+
+    def switching(self):
+        self.ids.sm.current = "visualizer_window"
+
+
+
 
 class VisualizerApp(App):
     pass
