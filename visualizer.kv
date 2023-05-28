@@ -52,7 +52,7 @@ Interface:
                             DebugBoxLayout:
                                 size_hint: 1, .85
                                 ScrollView:
-                                    GridLayout:
+                                    DebugGridLayout:
                                         id: file_placeholder
                                         size_hint_y: None
                                         height: self.minimum_height
@@ -70,6 +70,7 @@ Interface:
                                 ScrollView:
                                     GridLayout:
                                         id: property_placeholder
+                                        spacing: 22, 22
                                         size_hint_y: None
                                         height: self.minimum_height
                                         cols: 1
@@ -86,6 +87,7 @@ Interface:
                                 size: 100, 50
                                 background_normal: "update.png"
                                 background_down: "update_down.png"
+                                on_press: root.update()
                             Widget:
 
                             Button:
@@ -97,6 +99,14 @@ Interface:
 
 
 <DebugBoxLayout@BoxLayout>:
+#    canvas.before:
+#        Color:
+#            rgb: utils.get_random_color()
+#        Rectangle:
+#            size: self.size
+#            pos: self.pos
+
+<DebugGridLayout@GridLayout>:
 #    canvas.before:
 #        Color:
 #            rgb: utils.get_random_color()
