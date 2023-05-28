@@ -1,3 +1,4 @@
+import math
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -8,7 +9,9 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.image import Image
 from kivy.uix.label import Label
+
 #------------------------
+
 import pandas as pd
 from plyer import filechooser
 from matplotlib import pyplot as plt
@@ -26,6 +29,7 @@ class Interface(BoxLayout):
     obj_dict = {}
     colomn_dict = {}
     files = ""
+    file_address = {}
     # def __init__(self, **kwargs):
     #     super().__init__(**kwargs)
 
@@ -41,6 +45,7 @@ class Interface(BoxLayout):
         self.files = filechooser.open_file(title="Choose excel files", filter=[["*.xlsx"]], multiple=True)
         for file in self.files:
             file_name = file.split('/')[-1]
+            self.file_address[file_name] = file
             print(file_name)
             box = BoxLayout(size_hint_y=None, height=20, padding=[30, 0, 0, 0])
             checkbox = CheckBox(size_hint_x=.25, background_checkbox_normal="checkbox_nor.png", background_checkbox_down="checkbox_tic.png")
@@ -50,7 +55,7 @@ class Interface(BoxLayout):
             box.add_widget(label)
             self.ids.file_placeholder.add_widget(box)
             self.obj_dict[checkbox] = file_name
-        columns = pd.read_excel(self.files[0]).columns.values.tolist()
+        columns = pd.read_excel(self.files[1]).columns.values.tolist()
         for column in columns:
             box = BoxLayout(size_hint_y=None, height=20, padding=[30, 0, 0, 0])
             checkbox = CheckBox(size_hint_x=.25, background_checkbox_normal="checkbox_nor.png",
@@ -65,7 +70,19 @@ class Interface(BoxLayout):
 
     def update(self):
         # Ici on va définir le nombre de graphique
-        file_len = len(self.files)
+        files_leg = len(self.files)
+        row_col = math.ceil(files_leg/2)
+        fig, axis = plt.subplots(row_col, row_col)
+
+        # Récupération des fichiers en fonction de la key
+        files_checkbox = self.obj_dict.keys()  # on veut juste récupérer une liste de clef
+        for file_checkbox in files_checkbox:
+            if file_checkbox.active:
+                file_name = self.obj_dict[file_checkbox]
+                file_adress = self.file_address[file_name]
+                content = pd.read_excel(file_adress)
+                print(content)
+
     def upload_menu(self):
         self.ids.upload_btn.source = "Drop.png"
         Clock.schedule_once(self.upload)
