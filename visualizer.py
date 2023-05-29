@@ -1,20 +1,19 @@
-import math
-
 from kivy.app import App
 from kivy.clock import Clock
-
 from kivy.core.window.window_x11 import Config
+
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.image import Image
 from kivy.uix.label import Label
-
-#------------------------
+from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 
 import pandas as pd
 from plyer import filechooser
 from matplotlib import pyplot as plt
+import awkward as ak  # maybe he woks with flatten() ?
+import math
 
 Config.set('graphics', 'width', '1200')
 Config.set('graphics', 'height', '600')
@@ -35,12 +34,11 @@ class Interface(BoxLayout):
 
     def binder(self, checkbox, value):
         if value:
-            print(self.obj_dict[checkbox], "Ajouté")
+            print(self.obj_dict[checkbox], "Ajouté")  # added
         else:
-            print(self.obj_dict[checkbox], "retiré")
+            print(self.obj_dict[checkbox], "retiré")  # removed
 
     def upload(self, dt):
-
         # files retourne le répertoire
         self.files = filechooser.open_file(title="Choose excel files", filter=[["*.xlsx"]], multiple=True)
         for file in self.files:
@@ -55,7 +53,7 @@ class Interface(BoxLayout):
             box.add_widget(label)
             self.ids.file_placeholder.add_widget(box)
             self.obj_dict[checkbox] = file_name
-        columns = pd.read_excel(self.files[1]).columns.values.tolist()
+        columns = pd.read_excel(self.files[0]).columns.values.tolist()
         for column in columns:
             box = BoxLayout(size_hint_y=None, height=20, padding=[30, 0, 0, 0])
             checkbox = CheckBox(size_hint_x=.25, background_checkbox_normal="checkbox_nor.png",
@@ -69,19 +67,40 @@ class Interface(BoxLayout):
         self.ids.upload_btn.source = "Drag.png"
 
     def update(self):
+        # Afin de mettre à jour le graph, on vérifie s'il y a un children (un graph déjà déssiné)
+        # Puis on remove ce widget
+        children = self.ids.graph_placeholder.children
+        if children:  # ça peut être plusieurs
+            self.ids.graph_placeholder.remove_widget(children[0])
+
+        # x_axis = []
         # Ici on va définir le nombre de graphique
         files_leg = len(self.files)
-        row_col = math.ceil(files_leg/2)
-        fig, axis = plt.subplots(row_col, row_col)
-
+        row_col = math.ceil(files_leg / 2)
+        print(row_col)
+        fig, axis = plt.subplots()
+        # flatten_axis = axis.flatten().tolist()
+        # print(flatten_axis)
         # Récupération des fichiers en fonction de la key
+        properties_checkbox = self.colomn_dict.keys()
         files_checkbox = self.obj_dict.keys()  # on veut juste récupérer une liste de clef
-        for file_checkbox in files_checkbox:
+        plt.gcf().autofmt_xdate()
+        for index, file_checkbox in enumerate(files_checkbox):
+            y_axis = []
             if file_checkbox.active:
                 file_name = self.obj_dict[file_checkbox]
-                file_adress = self.file_address[file_name]
-                content = pd.read_excel(file_adress)
+                file_address = self.file_address[file_name]
+                content = pd.read_excel(file_address)
                 print(content)
+                for property_checkbox in properties_checkbox:
+                    if property_checkbox.active:
+                        if self.colomn_dict[property_checkbox] == "annee_numero_de_tirage":
+                            x_axis = content[self.colomn_dict[property_checkbox]]
+                        else:
+                            y_axis.append(content[self.colomn_dict[property_checkbox]])
+                for y in y_axis:
+                    plt.bar(x_axis.to_numpy(), y.to_numpy())
+        self.ids.graph_placeholder.add_widget(FigureCanvasKivyAgg(plt.gcf()))
 
     def upload_menu(self):
         self.ids.upload_btn.source = "Drop.png"
@@ -89,8 +108,6 @@ class Interface(BoxLayout):
 
     def switching(self):
         self.ids.sm.current = "visualizer_window"
-
-
 
 
 class VisualizerApp(App):
